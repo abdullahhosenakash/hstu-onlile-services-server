@@ -1,0 +1,11 @@
+{
+  "name": "hstu-online-services-server",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "mongodb": "^4.12.1"
+  }
+}
