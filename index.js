@@ -17,7 +17,29 @@ app.use(express.json());
 async function run() {
   try {
     await client.connect();
-    console.log('connected');
+    const examCollection = client
+      .db('HSTUOnlineServices')
+      .collection('examQuestions');
+
+    // GET METHODS
+    // app.get('/examQuestions/:studentId', async (req, res) => {
+    //   const studentId = req.params;
+    //   const result=await examCollection.findOne()
+    //   console.log(studentId);
+    // });
+    app.get('/examQuestions', async (req, res) => {
+      const query = req.query;
+      const { dept, level, semester } =
+        // const result=await examCollection.findOne()
+        console.log(studentId);
+    });
+
+    // POST METHODS
+    app.post('/examQuestions', async (req, res) => {
+      const examQuestion = req.body;
+      const result = await examCollection.insertOne(examQuestion);
+      res.send(result);
+    });
   } finally {
   }
 }
