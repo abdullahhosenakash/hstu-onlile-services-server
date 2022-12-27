@@ -28,10 +28,33 @@ async function run() {
     //   console.log(studentId);
     // });
     app.get('/examQuestions', async (req, res) => {
-      const query = req.query;
-      const { dept, level, semester } =
-        // const result=await examCollection.findOne()
-        console.log(studentId);
+      const { department, level, semester, examMode, studentId } = req.query;
+      let questions;
+      if (examMode === 'new') {
+        questions = await examCollection
+          .find({
+            examCompleted: false,
+            department,
+            level,
+            semester
+          })
+          .toArray();
+        const isParticipated = questions.find((question) =>
+          question.answers.find((answer) => answer.studentId === studentId)
+        );
+
+        const filteredQuestions = [];
+        questions.map((question) => {
+          const { answers, ...restQuestions } = question;
+          filteredQuestions.push(restQuestions);
+        });
+
+        if (!isParticipated) {
+          return res.send(filteredQuestions);
+        } else {
+          return res.send(false);
+        }
+      }
     });
 
     // POST METHODS
