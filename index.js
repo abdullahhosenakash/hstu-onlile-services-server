@@ -22,6 +22,7 @@ async function run() {
       .collection('examQuestions');
 
     // GET METHODS
+    //
     // app.get('/examQuestions/:studentId', async (req, res) => {
     //   const studentId = req.params;
     //   const result=await examCollection.findOne()
