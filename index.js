@@ -3,7 +3,7 @@ const cors = require('cors');
 require('dotenv').config();
 const port = process.env.PORT || 5000;
 const app = express();
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@hstuonlineservices.9l05rg8.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, {
   useNewUrlParser: true,
@@ -25,8 +25,19 @@ async function run() {
     // app.get('/examQuestions/:studentId', async (req, res) => {
     //   const studentId = req.params;
     //   const result=await examCollection.findOne()
-    //   console.log(studentId);
+    //   console.log(studentId)
     // });
+    app.put('/updateQuestion', async (req, res) => {
+      const { questionId } = req.query;
+      const updatedQuestions = req.body;
+      const filter = { _id: ObjectId(questionId) };
+      const updatedDoc = {
+        $set: updatedQuestions
+      };
+      const result = await examCollection.updateOne(filter, updatedDoc);
+      res.send({ result });
+    });
+
     app.get('/examQuestions', async (req, res) => {
       const { department, level, semester, examMode, studentId } = req.query;
       let questions;
