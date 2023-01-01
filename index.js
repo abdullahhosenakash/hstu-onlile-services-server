@@ -22,12 +22,7 @@ async function run() {
       .collection('examQuestions');
 
     // GET METHODS
-    //
-    // app.get('/examQuestions/:studentId', async (req, res) => {
-    //   const studentId = req.params;
-    //   const result=await examCollection.findOne()
-    //   console.log(studentId)
-    // });
+
     app.put('/updateQuestion', async (req, res) => {
       const { questionId } = req.query;
       const updatedQuestions = req.body;
@@ -36,19 +31,29 @@ async function run() {
         $set: updatedQuestions
       };
       const result = await examCollection.updateOne(filter, updatedDoc);
-      res.send({ result });
+      res.send(result);
     });
 
     app.put('/updateAnswer', async (req, res) => {
       const { questionId } = req.query;
       const { studentId, answers } = req.body;
-      console.log(studentId, answers, questionId);
-      // const filter = { _id: ObjectId(questionId) };
-      // const updatedDoc = {
-      //   $set: updatedQuestions
-      // };
-      // const result = await examCollection.updateOne(filter, updatedDoc);
-      // res.send({ result });
+      const filter = { _id: ObjectId(questionId) };
+      const totalAnswers = (await examCollection.findOne(filter)).answers;
+      const isAnswerAvailable = totalAnswers.find(
+        (answers) => answers.studentId === studentId
+      );
+
+      if (isAnswerAvailable) {
+        return res.send({ message: 'Answer has already submitted' });
+      } else {
+        const updatedAnswers = [...totalAnswers, { studentId, answers }];
+        const updatedDoc = {
+          $set: { answers: updatedAnswers }
+        };
+        // console.log(updatedDoc);
+        const result = await examCollection.updateOne(filter, updatedDoc);
+        res.send({ result });
+      }
     });
 
     app.get('/examQuestions', async (req, res) => {
@@ -77,7 +82,14 @@ async function run() {
         );
         const filteredNewQuestions = newQuestions.map((oldQuestion) => {
           const { answers, ...restProperties } = oldQuestion;
-          return restProperties;
+          const isParticipated = answers.find(
+            (answer) => answer.studentId === studentId
+          );
+          if (isParticipated) {
+            return { ...restProperties, participated: true };
+          } else {
+            return { ...restProperties, participated: false };
+          }
         });
         return res.send(filteredNewQuestions);
       }
