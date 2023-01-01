@@ -39,33 +39,47 @@ async function run() {
       res.send({ result });
     });
 
+    app.put('/updateAnswer', async (req, res) => {
+      const { questionId } = req.query;
+      const { studentId, answers } = req.body;
+      console.log(studentId, answers, questionId);
+      // const filter = { _id: ObjectId(questionId) };
+      // const updatedDoc = {
+      //   $set: updatedQuestions
+      // };
+      // const result = await examCollection.updateOne(filter, updatedDoc);
+      // res.send({ result });
+    });
+
     app.get('/examQuestions', async (req, res) => {
       const { department, level, semester, examMode, studentId } = req.query;
-      let questions;
-      if (examMode === 'new') {
-        questions = await examCollection
-          .find({
-            examCompleted: false,
-            department,
-            level,
-            semester
-          })
-          .toArray();
-        const isParticipated = questions.find((question) =>
-          question.answers.find((answer) => answer.studentId === studentId)
+      const questions = await examCollection
+        .find({
+          examCompleted: examMode === 'new' ? false : true,
+          department,
+          level,
+          semester
+        })
+        .toArray();
+
+      if (examMode === 'old') {
+        const oldQuestions = questions.filter(
+          (question) => question.examCompleted === true
         );
-
-        const filteredQuestions = [];
-        questions.map((question) => {
-          const { answers, ...restQuestions } = question;
-          filteredQuestions.push(restQuestions);
+        const filteredOldQuestions = oldQuestions.map((oldQuestion) => {
+          const { answers, ...restProperties } = oldQuestion;
+          return restProperties;
         });
-
-        if (!isParticipated) {
-          return res.send(filteredQuestions);
-        } else {
-          return res.send(false);
-        }
+        return res.send(filteredOldQuestions);
+      } else {
+        const newQuestions = questions.filter(
+          (question) => question.examCompleted === false
+        );
+        const filteredNewQuestions = newQuestions.map((oldQuestion) => {
+          const { answers, ...restProperties } = oldQuestion;
+          return restProperties;
+        });
+        return res.send(filteredNewQuestions);
       }
     });
 
