@@ -21,8 +21,6 @@ async function run() {
       .db('HSTUOnlineServices')
       .collection('examQuestions');
 
-    // GET METHODS
-
     app.put('/updateQuestion', async (req, res) => {
       const { questionId } = req.query;
       const updatedQuestions = req.body;
@@ -34,9 +32,37 @@ async function run() {
       res.send(result);
     });
 
+    app.put('/evaluateAnswers', async (req, res) => {
+      const { questionId } = req.query;
+      const { studentId, givenMarks } = req.body;
+      const filter = { _id: ObjectId(questionId) };
+
+      const totalAnswers = (await examCollection.findOne(filter)).answers;
+      const selectedAnswer = totalAnswers.find(
+        (answer) => answer.studentId === studentId
+      );
+      const restAnswers = totalAnswers.filter(
+        (answer) => answer.studentId !== studentId
+      );
+      const modifiedAnswer = {
+        ...selectedAnswer,
+        obtainedMark: givenMarks,
+        evaluated: true
+      };
+
+      const updatedAnswers = [...restAnswers, modifiedAnswer];
+
+      const updatedDoc = {
+        $set: { answers: updatedAnswers }
+      };
+      const result = await examCollection.updateOne(filter, updatedDoc);
+      res.send(result);
+      // console.log(modifiedAnswer);
+    });
+
     app.put('/updateAnswer', async (req, res) => {
       const { questionId } = req.query;
-      const { studentId, answers } = req.body;
+      const { studentId, answersOfQuestions } = req.body;
       const filter = { _id: ObjectId(questionId) };
       const totalAnswers = (await examCollection.findOne(filter)).answers;
       const isAnswerAvailable = totalAnswers.find(
@@ -46,7 +72,15 @@ async function run() {
       if (isAnswerAvailable) {
         return res.send({ message: 'Answer has already submitted' });
       } else {
-        const updatedAnswers = [...totalAnswers, { studentId, answers }];
+        const updatedAnswers = [
+          ...totalAnswers,
+          {
+            studentId,
+            answersOfQuestions,
+            evaluated: false,
+            obtainedMark: ''
+          }
+        ];
         const updatedDoc = {
           $set: { answers: updatedAnswers }
         };
@@ -54,6 +88,14 @@ async function run() {
         const result = await examCollection.updateOne(filter, updatedDoc);
         res.send({ result });
       }
+    });
+
+    // GET METHODS
+
+    app.get('/teacherExamQuestions', async (req, res) => {
+      const teacherId = req.query;
+      const result = await examCollection.find(teacherId).toArray();
+      res.send(result);
     });
 
     app.get('/examQuestions', async (req, res) => {

@@ -1,7 +1,8 @@
 # HSTU Online Services Server
 
 This is a server project of education board management system as a thesis of ECE 402 Course. Client side repository link is [here](https://github.com/abdullahhosenakash/hstu-online-services-client) <br/>
-Live link of the project is [here](https://hstu-online.web.app)
+Live link of the project is [here](https://hstu-online.web.app) <br/>
+[Frontend Repository](https://github.com/abdullahhosenakash/hstu-online-services-client) | [Live Project](https://hstu-online.web.app) | [Live Server](https://hstu-online-services-server.onrender.com)
 
 ## Group Members
 
