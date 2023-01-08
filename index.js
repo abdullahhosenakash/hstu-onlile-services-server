@@ -8,7 +8,7 @@ const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@hstuonl
 const client = new MongoClient(uri, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
-  serverApi: ServerApiVersion.v1
+  serverApi: ServerApiVersion.v1,
 });
 
 app.use(cors());
@@ -20,13 +20,19 @@ async function run() {
     const examCollection = client
       .db('HSTUOnlineServices')
       .collection('examQuestions');
+    const teacherCollection = client
+      .db('HSTUOnlineServices')
+      .collection('teachers');
+    const studentCollection = client
+      .db('HSTUOnlineServices')
+      .collection('students');
 
     app.put('/updateQuestion', async (req, res) => {
       const { questionId } = req.query;
       const updatedQuestions = req.body;
       const filter = { _id: ObjectId(questionId) };
       const updatedDoc = {
-        $set: updatedQuestions
+        $set: updatedQuestions,
       };
       const result = await examCollection.updateOne(filter, updatedDoc);
       res.send(result);
@@ -47,13 +53,13 @@ async function run() {
       const modifiedAnswer = {
         ...selectedAnswer,
         obtainedMark: givenMarks,
-        evaluated: true
+        evaluated: true,
       };
 
       const updatedAnswers = [...restAnswers, modifiedAnswer];
 
       const updatedDoc = {
-        $set: { answers: updatedAnswers }
+        $set: { answers: updatedAnswers },
       };
       const result = await examCollection.updateOne(filter, updatedDoc);
       res.send(result);
@@ -78,11 +84,11 @@ async function run() {
             studentId,
             answersOfQuestions,
             evaluated: false,
-            obtainedMark: ''
-          }
+            obtainedMark: '',
+          },
         ];
         const updatedDoc = {
-          $set: { answers: updatedAnswers }
+          $set: { answers: updatedAnswers },
         };
         // console.log(updatedDoc);
         const result = await examCollection.updateOne(filter, updatedDoc);
@@ -91,6 +97,25 @@ async function run() {
     });
 
     // GET METHODS
+
+    app.get('/findUser', async (req, res) => {
+      const { userId, userMode } = req.query;
+      let result;
+      if (userMode === 'student') {
+        result = await studentCollection.findOne({ userId });
+      } else {
+        result = await teacherCollection.findOne({ userId });
+      }
+      if (result) {
+        if (result.userEmail) {
+          res.send({ result: 1 });
+        } else {
+          res.send({ result: 0 });
+        }
+      } else {
+        res.send({ result: 'error' });
+      }
+    });
 
     app.get('/teacherExamQuestions', async (req, res) => {
       const teacherId = req.query;
@@ -105,7 +130,7 @@ async function run() {
           examCompleted: examMode === 'new' ? false : true,
           department,
           level,
-          semester
+          semester,
         })
         .toArray();
 
