@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
+const crypto = require('crypto');
 const port = process.env.PORT || 5000;
 const app = express();
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
@@ -98,25 +99,6 @@ async function run() {
 
     // GET METHODS
 
-    app.get('/findUser', async (req, res) => {
-      const { userId, userMode } = req.query;
-      let result;
-      if (userMode === 'student') {
-        result = await studentCollection.findOne({ userId });
-      } else {
-        result = await teacherCollection.findOne({ userId });
-      }
-      if (result) {
-        if (result.userEmail) {
-          res.send({ result: 1 });
-        } else {
-          res.send({ result: 0 });
-        }
-      } else {
-        res.send({ result: 'error' });
-      }
-    });
-
     app.get('/teacherExamQuestions', async (req, res) => {
       const teacherId = req.query;
       const result = await examCollection.find(teacherId).toArray();
@@ -167,6 +149,54 @@ async function run() {
       const examQuestion = req.body;
       const result = await examCollection.insertOne(examQuestion);
       res.send(result);
+    });
+
+    app.post('/addUser', async (req, res) => {
+      const { userMode } = req.query;
+      const newUser = req.body;
+
+      if (userMode === 'student') {
+        const availableStudent = await studentCollection.findOne({
+          studentId: newUser.studentId,
+        });
+        if (availableStudent) {
+          res.send({ message: 'Student already exists' });
+        } else {
+          let userId;
+          while (1) {
+            userId = crypto.randomBytes(4).toString('hex').toUpperCase();
+            if (!(await studentCollection.findOne({ userId }))) {
+              break;
+            }
+          }
+          const newUserWithUserId = { ...newUser, userId };
+          const result = await studentCollection.insertOne(newUserWithUserId);
+          res.send({ result, userId });
+        }
+      } else {
+        // isAvailable=await teacherCollection.findOne(newUser.studentId);
+      }
+
+      // console.log(isAvailable);
+    });
+
+    app.post('/findUser', async (req, res) => {
+      const { userId, userMode } = req.body;
+      let result;
+      if (userMode === 'student') {
+        result = await studentCollection.findOne({ userId });
+      } else {
+        result = await teacherCollection.findOne({ userId });
+      }
+      if (result) {
+        if (result.userEmail) {
+          res.send({ result: 1 });
+        } else {
+          res.send({ result: 0 });
+        }
+      } else {
+        res.send({ result: 'error' });
+      }
     });
   } finally {
   }
