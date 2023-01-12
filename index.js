@@ -118,6 +118,13 @@ async function run() {
       res.send(result);
     });
 
+    app.get('/findStudents', async (req, res) => {
+      // const { faculty, department, session } = req.query;
+
+      const result = await studentCollection.find(req.query).toArray();
+      res.send(result);
+    });
+
     app.get('/examQuestions', async (req, res) => {
       const { department, level, semester, examMode, studentId } = req.query;
       const questions = await examCollection
