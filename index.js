@@ -97,6 +97,19 @@ async function run() {
       }
     });
 
+    app.put('/updateUser', async (req, res) => {
+      const { userId, userMode } = req.query;
+      const updatedUser = req.body;
+      if (userMode === 'student') {
+        const filter = { userId };
+        const updatedDoc = {
+          $set: updatedUser,
+        };
+        const result = await studentCollection.updateOne(filter, updatedDoc);
+        res.send(result);
+      }
+    });
+
     // GET METHODS
 
     app.get('/teacherExamQuestions', async (req, res) => {

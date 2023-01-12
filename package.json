@@ -5,7 +5,7 @@
   "license": "MIT",
   "scripts": {
     "start": "node index.js",
-    "start-dev": "nodemon index.js"
+    "start-dev": "nodemo index.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
