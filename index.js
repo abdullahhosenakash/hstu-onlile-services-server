@@ -9,7 +9,7 @@ const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@hstuonl
 const client = new MongoClient(uri, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
-  serverApi: ServerApiVersion.v1,
+  serverApi: ServerApiVersion.v1
 });
 
 app.use(cors());
@@ -33,7 +33,7 @@ async function run() {
       const updatedQuestions = req.body;
       const filter = { _id: ObjectId(questionId) };
       const updatedDoc = {
-        $set: updatedQuestions,
+        $set: updatedQuestions
       };
       const result = await examCollection.updateOne(filter, updatedDoc);
       res.send(result);
@@ -54,13 +54,13 @@ async function run() {
       const modifiedAnswer = {
         ...selectedAnswer,
         obtainedMark: givenMarks,
-        evaluated: true,
+        evaluated: true
       };
 
       const updatedAnswers = [...restAnswers, modifiedAnswer];
 
       const updatedDoc = {
-        $set: { answers: updatedAnswers },
+        $set: { answers: updatedAnswers }
       };
       const result = await examCollection.updateOne(filter, updatedDoc);
       res.send(result);
@@ -85,11 +85,11 @@ async function run() {
             studentId,
             answersOfQuestions,
             evaluated: false,
-            obtainedMark: '',
-          },
+            obtainedMark: ''
+          }
         ];
         const updatedDoc = {
-          $set: { answers: updatedAnswers },
+          $set: { answers: updatedAnswers }
         };
         // console.log(updatedDoc);
         const result = await examCollection.updateOne(filter, updatedDoc);
@@ -103,7 +103,7 @@ async function run() {
       if (userMode === 'student') {
         const filter = { userId };
         const updatedDoc = {
-          $set: updatedUser,
+          $set: updatedUser
         };
         const result = await studentCollection.updateOne(filter, updatedDoc);
         res.send(result);
@@ -132,7 +132,7 @@ async function run() {
           examCompleted: examMode === 'new' ? false : true,
           department,
           level,
-          semester,
+          semester
         })
         .toArray();
 
@@ -164,6 +164,14 @@ async function run() {
       }
     });
 
+    app.get('/findQuestion', async (req, res) => {
+      const { questionId } = req.query;
+      const result = await examCollection.findOne({
+        _id: ObjectId(questionId)
+      });
+      res.send(result);
+    });
+
     // POST METHODS
     app.post('/examQuestions', async (req, res) => {
       const examQuestion = req.body;
@@ -177,7 +185,7 @@ async function run() {
 
       if (userMode === 'student') {
         const availableStudent = await studentCollection.findOne({
-          studentId: newUser.studentId,
+          studentId: newUser.studentId
         });
         if (availableStudent) {
           res.send({ message: 'Student already exists' });
