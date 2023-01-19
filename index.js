@@ -53,8 +53,7 @@ async function run() {
       );
       const modifiedAnswer = {
         ...selectedAnswer,
-        obtainedMark: givenMarks,
-        evaluated: true
+        obtainedMark: givenMarks
       };
 
       const updatedAnswers = [...restAnswers, modifiedAnswer];
@@ -84,7 +83,6 @@ async function run() {
           {
             studentId,
             answersOfQuestions,
-            evaluated: false,
             obtainedMark: ''
           }
         ];
@@ -119,8 +117,6 @@ async function run() {
     });
 
     app.get('/findStudents', async (req, res) => {
-      // const { faculty, department, session } = req.query;
-
       const result = await studentCollection.find(req.query).toArray();
       res.send(result);
     });
@@ -140,10 +136,21 @@ async function run() {
         const oldQuestions = questions.filter(
           (question) => question.examCompleted === true
         );
-        const filteredOldQuestions = oldQuestions.map((oldQuestion) => {
+        const filteredOldQuestions = oldQuestions?.map((oldQuestion) => {
           const { answers, ...restProperties } = oldQuestion;
-          return restProperties;
+          const participatedAnswer = answers?.find(
+            (answer) => answer.studentId === studentId
+          );
+
+          return {
+            ...restProperties,
+            obtainedMark: participatedAnswer
+              ? participatedAnswer.obtainedMark
+              : ''
+          };
         });
+        // console.log(filteredOldQuestions);
+
         return res.send(filteredOldQuestions);
       } else {
         const newQuestions = questions.filter(
@@ -151,10 +158,10 @@ async function run() {
         );
         const filteredNewQuestions = newQuestions.map((oldQuestion) => {
           const { answers, ...restProperties } = oldQuestion;
-          const isParticipated = answers.find(
+          const studentAnswer = answers.find(
             (answer) => answer.studentId === studentId
           );
-          if (isParticipated) {
+          if (studentAnswer) {
             return { ...restProperties, participated: true };
           } else {
             return { ...restProperties, participated: false };
@@ -171,6 +178,29 @@ async function run() {
       });
       res.send(result);
     });
+
+    // app.get('/findAnswer', async (req, res) => {
+    //   const { questionId, studentId } = req.query;
+    //   const filter = { _id: ObjectId(questionId) };
+    //   const selectedQuestion = await examCollection.findOne(filter);
+    //   const studentAnswer = selectedQuestion?.answers?.find(
+    //     (answer) => answer.studentId === studentId
+    //   );
+    //   if (studentAnswer) {
+    //     const {
+    //       answers,
+    //       examTimeInMilliseconds,
+    //       examTimeWithDurationInMilliseconds,
+    //       duration,
+    //       examCompleted,
+    //       ...restProperties
+    //     } = selectedQuestion;
+    //     res.send({ ...restProperties, studentAnswer });
+    //   } else {
+    //     res.send({ message: 'not participated' });
+    //   }
+    //   // console.log(studentAnswer);
+    // });
 
     // POST METHODS
     app.post('/examQuestions', async (req, res) => {
