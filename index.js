@@ -149,7 +149,6 @@ async function run() {
               : ''
           };
         });
-        // console.log(filteredOldQuestions);
 
         return res.send(filteredOldQuestions);
       } else {
@@ -179,28 +178,11 @@ async function run() {
       res.send(result);
     });
 
-    // app.get('/findAnswer', async (req, res) => {
-    //   const { questionId, studentId } = req.query;
-    //   const filter = { _id: ObjectId(questionId) };
-    //   const selectedQuestion = await examCollection.findOne(filter);
-    //   const studentAnswer = selectedQuestion?.answers?.find(
-    //     (answer) => answer.studentId === studentId
-    //   );
-    //   if (studentAnswer) {
-    //     const {
-    //       answers,
-    //       examTimeInMilliseconds,
-    //       examTimeWithDurationInMilliseconds,
-    //       duration,
-    //       examCompleted,
-    //       ...restProperties
-    //     } = selectedQuestion;
-    //     res.send({ ...restProperties, studentAnswer });
-    //   } else {
-    //     res.send({ message: 'not participated' });
-    //   }
-    //   // console.log(studentAnswer);
-    // });
+    app.get('/studentInfo', async (req, res) => {
+      const { userEmail } = req.query;
+      const result = await studentCollection.findOne({ userEmail });
+      res.send({ ...result, userMode: 'student' });
+    });
 
     // POST METHODS
     app.post('/examQuestions', async (req, res) => {
